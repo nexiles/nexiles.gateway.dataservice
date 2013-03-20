@@ -58,22 +58,21 @@ def query_data(data, id, **kw):
             return item
 
 
-@blueprint.route("/<number>/<name>/<id>", methods=["GET"])
+@blueprint.route("/<number>/<name>", methods=["GET"])
 @handle_api_error
 @returns_json
 @inject_runtime
-def get(number, name, id=None):
-    """get(number, name, id) -> JSON
+def get(number, name):
+    """get(number, name) -> JSON
 
     Data service
 
     :params number:  the number of a content holder
     :params name:    the name of a content item
-    :params id:      the id of an item
 
     :returns: JSON data
     """
-    logger.debug("DataService.get(%s %s %s)" % (number, name, id))
+    logger.debug("DataService.get(%s %s)" % (number, name))
 
     if not number:
         raise APIError(400, "illegal request", "need number.")
@@ -86,8 +85,39 @@ def get(number, name, id=None):
         raise APIError(400, "illegal request", "need name.")
 
     data = get_json_data(doc, name)
-    if id is None:
-        return data
+    return data
+
+@blueprint.route("/<number>/<name>/<id>", methods=["GET"])
+@handle_api_error
+@returns_json
+@inject_runtime
+def get_id(number, name, id):
+    """get(number, name, id) -> JSON
+
+    Data service
+
+    :params number:  the number of a content holder
+    :params name:    the name of a content item
+    :params id:      the id of an item
+
+    :returns: JSON data
+    """
+    logger.debug("DataService.get_id(%s %s %s)" % (number, name, id))
+
+    if not number:
+        raise APIError(400, "illegal request", "need number.")
+
+    doc = get_by_number(number)
+    if not doc:
+        raise APIError(404, "not found", "%s" % number)
+
+    if not name:
+        raise APIError(400, "illegal request", "need name.")
+
+    if not id:
+        raise APIError(400, "illegal request", "need id.")
+
+    data = get_json_data(doc, name)
 
     item = query_data(data, id)
     if item:
